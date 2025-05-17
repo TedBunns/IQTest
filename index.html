@@ -56,14 +56,14 @@
             background: linear-gradient(90deg, #9945FF, #14F195);
             padding: 10px 20px;
             border-radius: 8px;
-            color: #0D0D2B;
+            color: #14F195; /* Matches Solana IQ Certificate header */
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
             margin: 8px;
             text-align: center;
-            width: 160px; /* Fixed width for consistent scaling */
-            font-size: clamp(0.7rem, 2.5vw, 0.9rem); /* Auto-scale font */
+            width: 160px;
+            font-size: 0.95rem;
             line-height: 1.2;
         }
         .btn:hover {
@@ -76,8 +76,9 @@
             justify-content: center;
             padding: 12px 20px;
             gap: 2px;
-            width: 180px; /* Slightly wider for two lines */
-            font-size: clamp(0.65rem, 2vw, 0.85rem); /* Smaller auto-scale for longer text */
+            width: 180px;
+            color: #14F195; /* Matches Solana IQ Certificate header */
+            font-size: 0.85rem;
             line-height: 1.1;
         }
         .hidden {
@@ -269,8 +270,8 @@
                             <button className="btn" onClick={copyToClipboard}>Copy to Clipboard</button>
                             <button className="btn" onClick={tweetResults}>Tweet Your Results</button>
                             <button className="btn airdrop-btn" onClick={claimAirdrop}>
-                                <span>Paste your SOL wallet addy</span>
-                                <span>You'll get $SOLANAIQ free airdrop</span>
+                                <span>Paste SOL Addy</span>
+                                <span>Get $SOLANAIQ Airdrop</span>
                             </button>
                         </div>
                     </div>
