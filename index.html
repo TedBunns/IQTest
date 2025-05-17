@@ -54,7 +54,7 @@
         }
         .btn {
             background: linear-gradient(90deg, #9945FF, #14F195);
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 8px;
             color: #0D0D2B;
             font-weight: bold;
@@ -62,6 +62,9 @@
             transition: transform 0.2s;
             margin: 8px;
             text-align: center;
+            width: 160px; /* Fixed width for consistent scaling */
+            font-size: clamp(0.7rem, 2.5vw, 0.9rem); /* Auto-scale font */
+            line-height: 1.2;
         }
         .btn:hover {
             transform: scale(1.05);
@@ -71,8 +74,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 16px 24px;
-            gap: 4px;
+            padding: 12px 20px;
+            gap: 2px;
+            width: 180px; /* Slightly wider for two lines */
+            font-size: clamp(0.65rem, 2vw, 0.85rem); /* Smaller auto-scale for longer text */
+            line-height: 1.1;
         }
         .hidden {
             display: none;
@@ -187,7 +193,7 @@
                         }
                     });
                 }).catch(() => {
-                    alert('Failed to capture screenshot. Try running via a local server.');
+                    alert('Failed to capture screenshot. Try running via a secure context.');
                 });
             };
 
@@ -252,7 +258,7 @@
                             <h2 className="text-4xl font-bold mb-4">Solana IQ Certificate</h2>
                             <p className="text-xl mb-2">Congratulations, Solana Scholar!</p>
                             <p className="text-lg mb-2">Your Solana IQ Score is:</p>
-                            <p className="text-5xl font-bold text-[# energía verde de 14F195] mb-4">{calculateIQ()}</p>
+                            <p className="text-5xl font-bold text-[#14F195] mb-4">{calculateIQ()}</p>
                             <p className="text-lg mb-4">
                                 You answered {score} out of {quizData.length} questions correctly
                                 ({((score / quizData.length) * 100).toFixed(1)}%).
