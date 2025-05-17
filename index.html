@@ -1,285 +1,510 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Quiz (Test)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #0D0D2B 0%, #1A1A40 100%);
-            color: #FFFFFF;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .quiz-container, .certificate-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 24px;
-            width: 90%;
-            max-width: 700px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        }
-        .option {
-            background: #2A2A4D;
-            border: 2px solid #9945FF;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 8px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .option:hover {
-            background: #9945FF;
-            transform: translateY(-2px);
-        }
-        .option.correct {
-            background: #14F195;
-            border-color: #14F195;
-            color: #0D0D2B;
-        }
-        .option.incorrect {
-            background: #FF4A4A;
-            border-color: #FF4A4A;
-        }
-        .btn {
-            background: linear-gradient(90deg, #9945FF, #14F195);
-            padding: 10px 20px;
-            border-radius: 8px;
-            color: #14F195; /* Matches Solana IQ Certificate header */
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin: 8px;
-            text-align: center;
-            width: 160px;
-            font-size: 0.95rem;
-            line-height: 1.2;
-        }
-        .btn:hover {
-            transform: scale(1.05);
-        }
-        .airdrop-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 20px;
-            gap: 2px;
-            width: 180px;
-            color: #14F195; /* Matches Solana IQ Certificate header */
-            font-size: 0.85rem;
-            line-height: 1.1;
-        }
-        .hidden {
-            display: none;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-        }
-        .certificate {
-            border: 4px solid #9945FF;
-            background: linear-gradient(135deg, #2A2A4D, #1A1A40);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-        }
-        .certificate h2 {
-            color: #14F195;
-            text-shadow: 0 0 8px rgba(20, 241, 149, 0.5);
-        }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
+import { useState } from "react";
 
-    <script type="text/babel">
-        const quizData = [
-            {
-                "Question": "What Solana technology enables parallel smart contract execution, boosting throughput?",
-                "Correct Answer": "Sealevel",
-                "Incorrect Answer 1": "Gulf Stream",
-                "Incorrect Answer 2": "Turbine",
-                "Funny Answer": "Degenerate Transaction Pump"
-            },
-            {
-                "Question": "Which 2022 Solana NFT project, with 10,000 bears, aimed to create a virtuous community?",
-                "Correct Answer": "Okay Bears",
-                "Incorrect Answer 1": "DeGods",
-                "Incorrect Answer 2": "Mad Lads",
-                "Funny Answer": "Solana Snuggle Bears"
-            },
-            {
-                "Question": "What term describes Solana traders who chase quick profits on memecoins, often on Pump.fun?",
-                "Correct Answer": "Degens",
-                "Incorrect Answer 1": "HODLers",
-                "Incorrect Answer 2": "Whales",
-                "Funny Answer": "Moon Bois"
-            }
+const quizData = [
+  {
+    Question:
+      "What Solana technology enables parallel smart contract execution, boosting throughput?",
+    "Correct Answer": "Sealevel",
+    "Incorrect Answer 1": "Gulf Stream",
+    "Incorrect Answer 2": "Turbine",
+    "Funny Answer": "Degenerate Transaction Pump",
+  },
+  {
+    Question:
+      "Which 2022 Solana NFT project, with 10,000 bears, aimed to create a virtuous community?",
+    "Correct Answer": "Okay Bears",
+    "Incorrect Answer 1": "DeGods",
+    "Incorrect Answer 2": "Mad Lads",
+    "Funny Answer": "Solana Snuggle Bears",
+  },
+  {
+    Question:
+      "What term describes Solana traders who chase quick profits on memecoins, often on Pump.fun?",
+    "Correct Answer": "Degens",
+    "Incorrect Answer 1": "HODLers",
+    "Incorrect Answer 2": "Whales",
+    "Funny Answer": "Moon Bois",
+  },
+];
+
+function shuffle<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+declare global {
+  interface Window {
+    html2canvas: any;
+    ClipboardItem: any;
+  }
+}
+
+type AnswerObj = {
+  text: string;
+  isCorrect: boolean;
+};
+
+type UserAnswer = {
+  selected: string | null;
+  shuffledAnswers: AnswerObj[];
+};
+
+export default function App() {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>(
+    quizData.map(() => ({
+      selected: null,
+      shuffledAnswers: [],
+    }))
+  );
+  const [score, setScore] = useState(0);
+  const [locked, setLocked] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
+
+  // On first render, shuffle answers for all questions
+  // (so that going back/forth doesn't reshuffle)
+  // Only shuffle if not already shuffled
+  if (
+    userAnswers.some((ua, idx) => ua.shuffledAnswers.length === 0)
+  ) {
+    setUserAnswers((prev) =>
+      prev.map((ua, idx) => {
+        if (ua.shuffledAnswers.length > 0) return ua;
+        const q = quizData[idx];
+        const answers: AnswerObj[] = [
+          { text: q["Correct Answer"], isCorrect: true },
+          { text: q["Incorrect Answer 1"], isCorrect: false },
+          { text: q["Incorrect Answer 2"], isCorrect: false },
+          { text: q["Funny Answer"], isCorrect: false },
         ];
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        const QuizApp = () => {
-            const [currentQuestion, setCurrentQuestion] = React.useState(0);
-            const [score, setScore] = React.useState(0);
-            const [selectedAnswer, setSelectedAnswer] = React.useState(null);
-            const [feedback, setFeedback] = React.useState('');
-            const [showFeedback, setShowFeedback] = React.useState(false);
-            const [showCertificate, setShowCertificate] = React.useState(false);
-
-            const q = quizData[currentQuestion];
-
-            const handleAnswer = (answer) => {
-                setSelectedAnswer(answer.text);
-                setShowFeedback(true);
-                if (answer.isCorrect) {
-                    setScore(score + 1);
-                    setFeedback('Correct! Nice one, degen!');
-                } else {
-                    setFeedback(`Incorrect! The right answer was: ${q['Correct Answer']}`);
-                }
-            };
-
-            const nextQuestion = () => {
-                if (currentQuestion < quizData.length - 1) {
-                    setCurrentQuestion(currentQuestion + 1);
-                    setSelectedAnswer(null);
-                    setShowFeedback(false);
-                    setFeedback('');
-                } else {
-                    setShowCertificate(true);
-                }
-            };
-
-            const calculateIQ = () => {
-                const percentCorrect = (score / quizData.length) * 100;
-                const iq = Math.round(30 + (percentCorrect * (195 - 30) / 100));
-                return iq;
-            };
-
-            const copyToClipboard = () => {
-                const certificateElement = document.querySelector('.certificate');
-                html2canvas(certificateElement).then(canvas => {
-                    canvas.toBlob(blob => {
-                        if (navigator.clipboard && navigator.clipboard.write) {
-                            const item = new ClipboardItem({ 'image/png': blob });
-                            navigator.clipboard.write([item]).then(() => {
-                                alert('Certificate screenshot copied to clipboard! Paste into an image editor or chat.');
-                            }).catch(() => {
-                                fallbackDownload(canvas);
-                            });
-                        } else {
-                            fallbackDownload(canvas);
-                        }
-                    });
-                }).catch(() => {
-                    alert('Failed to capture screenshot. Try running via a secure context.');
-                });
-            };
-
-            const fallbackDownload = (canvas) => {
-                const link = document.createElement('a');
-                link.download = 'solana-iq-certificate.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                alert('Clipboard copy not supported. Certificate downloaded as solana-iq-certificate.png.');
-            };
-
-            const tweetResults = () => {
-                const iq = calculateIQ();
-                const percent = ((score / quizData.length) * 100).toFixed(1);
-                const tweetText = encodeURIComponent(`My Solana IQ Score is ${iq}! I got ${percent}% correct on the Solana Quiz! 🚀 #SolanaIQ`);
-                window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
-            };
-
-            const claimAirdrop = () => {
-                window.open('https://solana-quiz-airdrop.example.com', '_blank');
-            };
-
-            const answers = [
-                { text: q['Correct Answer'], isCorrect: true },
-                { text: q['Incorrect Answer 1'], isCorrect: false },
-                { text: q['Incorrect Answer 2'], isCorrect: false },
-                { text: q['Funny Answer'], isCorrect: false }
-            ];
-            const shuffledAnswers = shuffle([...answers]);
-
-            return (
-                <div>
-                    <div className={`quiz-container animate-fadeIn ${showCertificate ? 'hidden' : ''}`}>
-                        <h1 className="text-3xl font-bold mb-6">Solana Quiz (Test)</h1>
-                        <div className="progress mb-4 text-lg">
-                            Question <span>{currentQuestion + 1}</span> of <span>{quizData.length}</span>
-                        </div>
-                        <div className="question text-xl mb-6">{q.Question}</div>
-                        <div className="options flex flex-col gap-3">
-                            {shuffledAnswers.map((answer, index) => (
-                                <div
-                                    key={index}
-                                    className={`option ${selectedAnswer === answer.text ? (answer.isCorrect ? 'correct' : 'incorrect') : ''}`}
-                                    onClick={() => !selectedAnswer && handleAnswer(answer)}
-                                >
-                                    {answer.text}
-                                </div>
-                            ))}
-                        </div>
-                        <div className={`feedback text-lg mt-4 ${showFeedback ? 'animate-fadeIn' : 'hidden'}`}>
-                            {feedback}
-                        </div>
-                        <div className="score text-lg mt-4">Score: <span>{score}</span>/{quizData.length}</div>
-                        {showFeedback && (
-                            <button className="btn mt-6" onClick={nextQuestion}>
-                                {currentQuestion < quizData.length - 1 ? 'Next Question' : 'See Certificate'}
-                            </button>
-                        )}
-                    </div>
-                    <div className={`certificate-container animate-fadeIn ${showCertificate ? '' : 'hidden'}`}>
-                        <div className="certificate">
-                            <h2 className="text-4xl font-bold mb-4">Solana IQ Certificate</h2>
-                            <p className="text-xl mb-2">Congratulations, Solana Scholar!</p>
-                            <p className="text-lg mb-2">Your Solana IQ Score is:</p>
-                            <p className="text-5xl font-bold text-[#14F195] mb-4">{calculateIQ()}</p>
-                            <p className="text-lg mb-4">
-                                You answered {score} out of {quizData.length} questions correctly
-                                ({((score / quizData.length) * 100).toFixed(1)}%).
-                            </p>
-                            <p className="text-md italic">Certified on May 17, 2025</p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-                            <button className="btn" onClick={copyToClipboard}>Copy to Clipboard</button>
-                            <button className="btn" onClick={tweetResults}>Tweet Your Results</button>
-                            <button className="btn airdrop-btn" onClick={claimAirdrop}>
-                                <span>Paste SOL Addy</span>
-                                <span>Get $SOLANAIQ Airdrop</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
+        return {
+          ...ua,
+          shuffledAnswers: shuffle(answers),
         };
+      })
+    );
+    // Prevent double render
+    return null;
+  }
 
-        ReactDOM.render(<QuizApp />, document.getElementById('root'));
-    </script>
-</body>
-</html>
+  const q = quizData[currentQuestion];
+  const currentUserAnswer = userAnswers[currentQuestion];
+
+  // Feedback logic
+  const showFeedback = locked && currentUserAnswer.selected !== null;
+  let feedback = "";
+  if (showFeedback) {
+    const selectedObj = currentUserAnswer.shuffledAnswers.find(
+      (a) => a.text === currentUserAnswer.selected
+    );
+    if (selectedObj?.isCorrect) {
+      feedback = "Correct! Nice one, degen!";
+    } else {
+      feedback = `Incorrect! The right answer was: ${q["Correct Answer"]}`;
+    }
+  }
+
+  // Score calculation (recalculate on lock-in)
+  const calculateScore = () => {
+    let s = 0;
+    for (let i = 0; i < quizData.length; i++) {
+      const ua = userAnswers[i];
+      if (!ua.selected) continue;
+      const selectedObj = ua.shuffledAnswers.find(
+        (a) => a.text === ua.selected
+      );
+      if (selectedObj?.isCorrect) s++;
+    }
+    return s;
+  };
+
+  const handleSelect = (answer: string) => {
+    if (locked) return;
+    setUserAnswers((prev) =>
+      prev.map((ua, idx) =>
+        idx === currentQuestion
+          ? { ...ua, selected: answer }
+          : ua
+      )
+    );
+  };
+
+  const handleLock = () => {
+    if (currentUserAnswer.selected === null) return;
+    setLocked(true);
+    // Update score
+    setScore(calculateScore());
+  };
+
+  const handleNext = () => {
+    if (currentQuestion < quizData.length - 1) {
+      setCurrentQuestion((q) => q + 1);
+      setLocked(false);
+    } else {
+      setShowCertificate(true);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion((q) => q - 1);
+      setLocked(false);
+    }
+  };
+
+  const calculateIQ = () => {
+    const percentCorrect = (score / quizData.length) * 100;
+    const iq = Math.round(30 + (percentCorrect * (195 - 30)) / 100);
+    return iq;
+  };
+
+  const copyToClipboard = () => {
+    const certificateElement = document.querySelector(
+      ".certificate"
+    ) as HTMLElement;
+    if (!certificateElement || !window.html2canvas) {
+      alert("Screenshot not supported in this environment.");
+      return;
+    }
+    window.html2canvas(certificateElement)
+      .then((canvas: HTMLCanvasElement) => {
+        canvas.toBlob((blob: Blob | null) => {
+          if (!blob) {
+            alert("Failed to capture screenshot.");
+            return;
+          }
+          if (
+            navigator.clipboard &&
+            (window as any).ClipboardItem &&
+            navigator.clipboard.write
+          ) {
+            const item = new (window as any).ClipboardItem({
+              "image/png": blob,
+            });
+            navigator.clipboard
+              .write([item])
+              .then(() => {
+                alert(
+                  "Certificate screenshot copied to clipboard! Paste into an image editor or chat."
+                );
+              })
+              .catch(() => {
+                fallbackDownload(canvas);
+              });
+          } else {
+            fallbackDownload(canvas);
+          }
+        });
+      })
+      .catch(() => {
+        alert(
+          "Failed to capture screenshot. Try running via a secure context."
+        );
+      });
+  };
+
+  const fallbackDownload = (canvas: HTMLCanvasElement) => {
+    const link = document.createElement("a");
+    link.download = "solana-iq-certificate.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    alert(
+      "Clipboard copy not supported. Certificate downloaded as solana-iq-certificate.png."
+    );
+  };
+
+  const tweetResults = () => {
+    const iq = calculateIQ();
+    const percent = ((score / quizData.length) * 100).toFixed(1);
+    const tweetText = encodeURIComponent(
+      `My Solana IQ Score is ${iq}! I got ${percent}% correct on the Solana Quiz! 🚀 #SolanaIQ`
+    );
+    window.open(
+      `https://twitter.com/intent/tweet?text=${tweetText}`,
+      "_blank"
+    );
+  };
+
+  const claimAirdrop = () => {
+    window.open("https://solana-quiz-airdrop.example.com", "_blank");
+  };
+
+  return (
+    <div>
+      <style>
+        {`
+body {
+margin: 0;
+padding: 0;
+background: linear-gradient(135deg, #0D0D2B 0%, #1A1A40 100%);
+color: #FFFFFF;
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+}
+.quiz-container, .certificate-container {
+background: rgba(255, 255, 255, 0.05);
+border-radius: 16px;
+padding: 24px;
+width: 90%;
+max-width: 700px;
+backdrop-filter: blur(10px);
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+.option {
+background: #2A2A4D;
+border: 2px solid #9945FF;
+border-radius: 8px;
+padding: 12px;
+margin: 8px 0;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+.option:hover {
+background: #9945FF;
+transform: translateY(-2px);
+}
+.option.selected {
+box-shadow: 0 0 0 3px #14F195;
+border-color: #14F195;
+}
+.option.correct {
+background: #14F195;
+border-color: #14F195;
+color: #0D0D2B;
+}
+.option.incorrect {
+background: #FF4A4A;
+border-color: #FF4A4A;
+}
+/* Test screen button formatting reverted to original, simple style */
+.btn {
+background: linear-gradient(90deg, #9945FF, #14F195);
+padding: 10px 20px;
+border-radius: 8px;
+color: #fff;
+font-weight: bold;
+cursor: pointer;
+transition: transform 0.2s;
+margin: 8px;
+text-align: center;
+width: 160px;
+font-size: 1.5rem;
+line-height: 1.2;
+text-shadow: none;
+white-space: normal;
+word-break: break-word;
+overflow-wrap: break-word;
+display: flex;
+align-items: center;
+justify-content: center;
+min-height: 96px;
+min-width: 160px;
+max-width: 100%;
+}
+.btn:hover {
+transform: scale(1.05);
+}
+/* Certificate screen button overrides for visual appeal */
+.certificate-container .btn {
+color: #14F195;
+min-height: 76px;
+max-height: 88px;
+line-height: 1.1;
+text-shadow:
+0 2px 8px #2A0047,
+0 0px 2px #2A0047,
+0 1px 0 #2A0047;
+min-width: 160px;
+max-width: 100%;
+padding-top: 0;
+padding-bottom: 0;
+}
+/* INCREASED FONT SIZES FOR FIRST AND SECOND BUTTONS BY 4pt, THIRD BY 2pt, NOW 3rd is 1pt smaller */
+/* 1pt = 1.333px, so 4pt ≈ 5.33px, 2pt ≈ 2.67px, 1pt ≈ 1.33px */
+/* Previous: clamp(1.1rem, 2.5vw, 1.3rem) ~ 17.6px-20.8px */
+/* Now: +4pt = +5.33px, so max ~26.1px for first two, +2pt = +2.67px, so max ~23.5px for third, now 3rd is +1pt = +1.33px, so max ~21.1px */
+.certificate-container .btn.certificate-copy,
+.certificate-container .btn.certificate-tweet {
+font-size: clamp(1.35rem, 3vw, 1.63rem); /* ~21.6px-26.1px */
+font-weight: 700;
+letter-spacing: 0.01em;
+}
+.certificate-container .btn.airdrop-btn {
+font-size: clamp(1.05rem, 2.2vw, 1.32rem); /* ~16.8px-21.1px */
+font-weight: 700;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 0;
+width: 200px;
+min-height: 88px;
+max-height: 100px;
+padding: 0 10px;
+}
+.certificate-container .btn.airdrop-btn span {
+font-size: inherit;
+text-shadow:
+0 2px 8px #2A0047,
+0 0px 2px #2A0047,
+0 1px 0 #2A0047;
+color: #14F195;
+font-weight: bold;
+text-align: center;
+display: block;
+width: 100%;
+line-height: 1.1;
+}
+.hidden {
+display: none;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+animation: fadeIn 0.5s ease-out;
+}
+.certificate {
+border: 4px solid #9945FF;
+background: linear-gradient(135deg, #2A2A4D, #1A1A40);
+padding: 20px;
+border-radius: 12px;
+text-align: center;
+}
+.certificate h2 {
+color: #14F195;
+text-shadow: 0 0 8px rgba(20, 241, 149, 0.5);
+}
+        `}
+      </style>
+      <div
+        className={`quiz-container animate-fadeIn ${
+          showCertificate ? "hidden" : ""
+        }`}
+      >
+        <h1 className="text-3xl font-bold mb-6">Solana Quiz (Test)</h1>
+        <div className="progress mb-4 text-lg">
+          Question <span>{currentQuestion + 1}</span> of{" "}
+          <span>{quizData.length}</span>
+        </div>
+        <div className="question text-xl mb-6">{q.Question}</div>
+        <div className="options flex flex-col gap-3">
+          {currentUserAnswer.shuffledAnswers.map((answer, index) => {
+            // Show correct/incorrect only if locked
+            let optionClass = "";
+            if (locked && currentUserAnswer.selected === answer.text) {
+              optionClass = answer.isCorrect ? "correct" : "incorrect";
+            } else if (
+              !locked &&
+              currentUserAnswer.selected === answer.text
+            ) {
+              optionClass = "selected";
+            }
+            return (
+              <div
+                key={index}
+                className={`option ${optionClass}`}
+                onClick={() => handleSelect(answer.text)}
+                style={{
+                  pointerEvents: locked ? "none" : "auto",
+                  opacity:
+                    locked && !optionClass
+                      ? 0.7
+                      : 1,
+                }}
+              >
+                {answer.text}
+              </div>
+            );
+          })}
+        </div>
+        <div
+          className={`feedback text-lg mt-4 ${
+            showFeedback ? "animate-fadeIn" : "hidden"
+          }`}
+        >
+          {feedback}
+        </div>
+        <div className="score text-lg mt-4">
+          Score: <span>{score}</span>/{quizData.length}
+        </div>
+        <div className="flex flex-row justify-between mt-8">
+          <button
+            className="btn"
+            onClick={handlePrev}
+            disabled={currentQuestion === 0}
+            style={{
+              opacity: currentQuestion === 0 ? 0.5 : 1,
+              pointerEvents: currentQuestion === 0 ? "none" : "auto",
+            }}
+          >
+            Previous
+          </button>
+          {!locked ? (
+            <button
+              className="btn"
+              onClick={handleLock}
+              disabled={currentUserAnswer.selected === null}
+              style={{
+                opacity: currentUserAnswer.selected === null ? 0.5 : 1,
+                pointerEvents:
+                  currentUserAnswer.selected === null
+                    ? "none"
+                    : "auto",
+              }}
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              className="btn"
+              onClick={handleNext}
+            >
+              {currentQuestion < quizData.length - 1
+                ? "Continue"
+                : "See Certificate"}
+            </button>
+          )}
+        </div>
+      </div>
+      <div
+        className={`certificate-container animate-fadeIn ${
+          showCertificate ? "" : "hidden"
+        }`}
+      >
+        <div className="certificate">
+          <h2 className="text-4xl font-bold mb-4">Solana IQ Certificate</h2>
+          <p className="text-xl mb-2">Congratulations, Solana Scholar!</p>
+          <p className="text-lg mb-2">Your Solana IQ Score is:</p>
+          <p className="text-5xl font-bold text-[#14F195] mb-4">
+            {calculateIQ()}
+          </p>
+          <p className="text-lg mb-4">
+            You answered {score} out of {quizData.length} questions correctly (
+            {((score / quizData.length) * 100).toFixed(1)}%).
+          </p>
+          <p className="text-md italic">Certified on May 17, 2025</p>
+        </div>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+          <button className="btn certificate-copy" onClick={copyToClipboard}>
+            Copy to Clipboard
+          </button>
+          <button className="btn certificate-tweet" onClick={tweetResults}>
+            Tweet Your Results
+          </button>
+          <button className="btn airdrop-btn" onClick={claimAirdrop}>
+            <span>- Paste SOL addy</span>
+            <span>- Get $SOLANAAI Airdropped</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
