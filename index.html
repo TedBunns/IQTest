@@ -96,16 +96,12 @@ export default function App() {
 
   // Feedback logic
   const showFeedback = locked && currentUserAnswer.selected !== null;
-  let feedback = "";
+  let isCorrect = false;
   if (showFeedback) {
     const selectedObj = currentUserAnswer.shuffledAnswers.find(
       (a) => a.text === currentUserAnswer.selected
     );
-    if (selectedObj?.isCorrect) {
-      feedback = "Correct! Nice one, degen!";
-    } else {
-      feedback = `Incorrect! The right answer was: ${q["Correct Answer"]}`;
-    }
+    isCorrect = !!selectedObj?.isCorrect;
   }
 
   // Score calculation (recalculate on lock-in)
@@ -149,12 +145,7 @@ export default function App() {
     }
   };
 
-  const handlePrev = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion((q) => q - 1);
-      setLocked(false);
-    }
-  };
+  // Removed handlePrev and all references to "Previous" button
 
   const calculateIQ = () => {
     const percentCorrect = (score / quizData.length) * 100;
@@ -256,6 +247,7 @@ width: 90%;
 max-width: 700px;
 backdrop-filter: blur(10px);
 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+position: relative;
 }
 .option {
 background: #2A2A4D;
@@ -282,6 +274,33 @@ color: #0D0D2B;
 .option.incorrect {
 background: #FF4A4A;
 border-color: #FF4A4A;
+}
+.quiz-feedback-overlay {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 10;
+display: flex;
+align-items: center;
+justify-content: center;
+pointer-events: none;
+}
+/* DOUBLE SIZE of check/X icon: was 8rem, now 16rem */
+.quiz-feedback-icon {
+font-size: 16rem;
+font-weight: bold;
+text-shadow: 0 4px 32px rgba(0,0,0,0.25), 0 0 0 #fff;
+user-select: none;
+}
+.quiz-feedback-icon.correct {
+color: #14F195;
+text-shadow: 0 0 32px #14F195, 0 4px 32px #0D0D2B;
+}
+.quiz-feedback-icon.incorrect {
+color: #FF4A4A;
+text-shadow: 0 0 32px #FF4A4A, 0 4px 32px #0D0D2B;
 }
 /* Test screen button formatting reverted to original, simple style */
 .btn {
@@ -382,12 +401,22 @@ text-align: center;
 color: #14F195;
 text-shadow: 0 0 8px rgba(20, 241, 149, 0.5);
 }
+.certificate .farm-squish {
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+font-size: 1.1rem;
+font-weight: bold;
+color: #FFD700;
+text-shadow: 0 0 8px #2A0047, 0 2px 8px #2A0047;
+letter-spacing: 0.01em;
+}
         `}
       </style>
       <div
         className={`quiz-container animate-fadeIn ${
           showCertificate ? "hidden" : ""
         }`}
+        style={{ position: "relative" }}
       >
         <h1 className="text-3xl font-bold mb-6">Solana Quiz (Test)</h1>
         <div className="progress mb-4 text-lg">
@@ -425,28 +454,27 @@ text-shadow: 0 0 8px rgba(20, 241, 149, 0.5);
             );
           })}
         </div>
-        <div
-          className={`feedback text-lg mt-4 ${
-            showFeedback ? "animate-fadeIn" : "hidden"
-          }`}
-        >
-          {feedback}
-        </div>
+        {/* Overlay for green check or red X */}
+        {showFeedback && (
+          <div className="quiz-feedback-overlay">
+            {isCorrect ? (
+              <span className="quiz-feedback-icon correct" aria-label="Correct" role="img">
+                ✓
+              </span>
+            ) : (
+              <span className="quiz-feedback-icon incorrect" aria-label="Incorrect" role="img">
+                ✗
+              </span>
+            )}
+          </div>
+        )}
+        {/* No feedback text, only overlay */}
         <div className="score text-lg mt-4">
           Score: <span>{score}</span>/{quizData.length}
         </div>
         <div className="flex flex-row justify-between mt-8">
-          <button
-            className="btn"
-            onClick={handlePrev}
-            disabled={currentQuestion === 0}
-            style={{
-              opacity: currentQuestion === 0 ? 0.5 : 1,
-              pointerEvents: currentQuestion === 0 ? "none" : "auto",
-            }}
-          >
-            Previous
-          </button>
+          {/* Removed Previous button */}
+          <div style={{ flex: 1 }} />
           {!locked ? (
             <button
               className="btn"
@@ -486,11 +514,11 @@ text-shadow: 0 0 8px rgba(20, 241, 149, 0.5);
           <p className="text-5xl font-bold text-[#14F195] mb-4">
             {calculateIQ()}
           </p>
-          <p className="text-lg mb-4">
-            You answered {score} out of {quizData.length} questions correctly (
-            {((score / quizData.length) * 100).toFixed(1)}%).
-          </p>
-          <p className="text-md italic">Certified on May 17, 2025</p>
+          {/* Removed the "You answered X out of Y questions correctly" line */}
+          <p className="text-md italic mb-2">Certified on May 17, 2025</p>
+          <div className="farm-squish">
+            FARM AND WIN $SQUISH  CA:kjdksjdhksjdhfskjdfhkkjhsdkfj
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
           <button className="btn certificate-copy" onClick={copyToClipboard}>
